@@ -1,5 +1,6 @@
 # Limpeza e validação de dados - 03/11/2025 - Oliveira, 2025
 
+# 1ª - Limpar e validar as coordenadas
 
 # Carrega os pacotes necessários
 library(CoordinateCleaner)
@@ -107,8 +108,29 @@ data_clean <- CoordinateCleaner::cd_round(
 
 # Prepara dados finais para exportação
 data_export <- data_clean %>%
-  dplyr::select(decimalLongitude, decimalLatitude)
+  dplyr::select(Longitude, Latitude) # trocar para decimalLongitude/Latitude (GBIF)
 
 # Exporta os dados limpos
-readr::write_csv(data_export, "data_clean/dataset_final.csv")
+readr::write_csv(data_export, "data/dataset_final.csv")
+
+# 2ª - Excluir coordenadas repetidas entre os conjuntos de dados
+
+# Importar dados limpos
+gbif <- readr::read_csv("data/gbif_final.csv")
+dataset <- readr::read_csv("data/dataset_final.csv")
+
+# Remover coordenadas duplicadas
+gbif_uni  <- gbif %>% 
+  distinct(Longitude, Latitude)
+dataset_uni  <- dataset %>% 
+  distinct(Longitude, Latitude)
+
+# Remover coordenadas duplicadas entre os conjuntos de dados
+gbif_nodupl <- gbif_uni %>%
+  dplyr::anti_join(dataset_uni,
+                   by = c("Longitude","Latitude"))
+
+# Exportar dados finais
+readr::write_csv(dataset_uni, "data/dataset.csv")
+readr::write_csv(gbif_nodupl,"data/gbif.csv")
 

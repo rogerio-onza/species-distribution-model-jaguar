@@ -1,5 +1,5 @@
 # Script automatizado para treino e avaliação de modelos de distribuição de espécies
-# Panthera onca - Ecorregiões - Oliveira, 2025
+# Panthera onca - Ecorregiões - 07/11 - Oliveira, 2025
 
 # Carregar pacotes necessários
 library(terra)
@@ -39,9 +39,15 @@ calculate_metrics <- function(model, test_swd, threshold_val, distance, region) 
   pres_vals <- as.numeric(preds_test[test_swd@pa == 1])
   bg_vals <- as.numeric(preds_test[test_swd@pa == 0])
   
-  # Calcular AUC e TSS
-  auc_val <- SDMtune::auc(model, test = test_swd)
-  tss_val <- SDMtune::tss(model, test = test_swd)
+  # Calcular AUC treino e teste
+  auc_train <- SDMtune::auc(model)
+  auc_test <- SDMtune::auc(model, test = test_swd)
+  auc_diff <- auc_train - auc_test
+  
+  # Calcular TSS treino e teste
+  tss_train <- SDMtune::tss(model)
+  tss_test <- SDMtune::tss(model, test = test_swd)
+  tss_diff <- tss_train - tss_test
   
   # Calcular CBI
   cbi_value <- tryCatch(
@@ -71,8 +77,12 @@ calculate_metrics <- function(model, test_swd, threshold_val, distance, region) 
   data.frame(
     Region = region,
     Distance = distance,
-    AUC_test = round(auc_val, 3),
-    TSS_test = round(tss_val, 3),
+    AUC_train = round(auc_train, 3),
+    AUC_test = round(auc_test, 3),
+    AUC_diff = round(auc_diff, 3),
+    TSS_train = round(tss_train, 3),
+    TSS_test = round(tss_test, 3),
+    TSS_diff = round(tss_diff, 3),
     CBI_test = round(cbi_value, 3),
     Commission = round(commission_rate, 3),
     Omission = round(omission_rate, 3),
